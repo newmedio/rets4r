@@ -83,7 +83,11 @@ module RETS4R
       def request(url, data = {}, header = {}, method = @method, retry_auth = DEFAULT_RETRY)
         response = ''
 
-        http = Net::HTTP.new(url.host, url.port)
+		http = Net::HTTP.new(url.host, url.port)
+		if url.port == 443
+		  http.use_ssl = true
+		  http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+		end
         http.read_timeout = 600
 
         if logger && logger.debug?
@@ -113,6 +117,10 @@ module RETS4R
               response  = method == METHOD_POST ? http.post(uri, post_data, headers) :
                                                   http.get(uri, headers)
 
+			  # This will show errors from RETS when troubleshooting (Tavo)
+              # puts '===================================================='
+              # puts response.body
+              # puts '===================================================='
 
               if response.code == '401'
                 # Authentication is required
